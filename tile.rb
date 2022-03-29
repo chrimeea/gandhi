@@ -142,26 +142,27 @@ module Gandhi
 
 	class Tile
 		extend Forwardable
-		attr_accessor :ttype, :tex_map
-		def_delegators :@tex_map.shape, :center, :leftY?, :aboveX, :intersectsY?, :intersectsX?
+		attr_accessor :ttype, :shape, :tex_map
+		def_delegators :@shape, :center, :leftY?, :aboveX, :intersectsY?, :intersectsX?
 
 		def initialize ttype, tex_map
 			@ttype = ttype
+			@shape = tex_map.shape
 			@tex_map = tex_map
 		end
 
 		def splitY x
-			@tex_map.shape.splitY x
+			@shape.splitY x
 			@tex_map.splitY @tex_map.convertXToTex(x)
 		end
 
 		def splitX y
-			@tex_map.shape.splitX y
+			@shape.splitX y
 			@tex_map.splitX @tex_map.convertYToTex(y)
 		end
 
 		def splitXY x, y
-			@tex_map.shape.splitXY x, y
+			@shape.splitXY x, y
 			@tex_map.splitXY @tex_map.convertXToTex(x), @tex_map.convertYToTex(y)
 		end
 	end
