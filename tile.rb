@@ -143,7 +143,7 @@ module Gandhi
 	class Tile
 		extend Forwardable
 		attr_accessor :ttype, :tex_map
-		def_delegators :@shape, :center, :leftY?, :aboveX, :intersectsY?, :intersectsX?
+		def_delegators :@tex_map.shape, :center, :leftY?, :aboveX, :intersectsY?, :intersectsX?
 
 		def initialize ttype, tex_map
 			@ttype = ttype
