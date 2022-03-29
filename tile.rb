@@ -40,7 +40,7 @@ module Gandhi
 		end
 	end
 
-	class Quad < Shape
+	class QuadShape < Shape
 		def initialize top_left, bottom_right
 			@top_left = top_left
 			@bottom_right = bottom_right
@@ -90,8 +90,8 @@ module Gandhi
 		def splitY x
 			if intersectsY? x
 				[
-					Quad.new(@top_left, Point.new(x, @bottom_right.y)),
-					Quad.new(Point.new(x, @top_left.y), @bottom_right)
+					QuadShape.new(@top_left, Point.new(x, @bottom_right.y)),
+					QuadShape.new(Point.new(x, @top_left.y), @bottom_right)
 				]
 			elsif leftY? x
 				[self, nil]
@@ -103,8 +103,8 @@ module Gandhi
 		def splitX y
 			if intersectsX? y
 				[
-					Quad.new(@top_left, Point.new(@bottom_right.x, y)),
-					Quad.new(Point.new(@top_left.x, y), @bottom_right)
+					QuadShape.new(@top_left, Point.new(@bottom_right.x, y)),
+					QuadShape.new(Point.new(@top_left.x, y), @bottom_right)
 				]
 			elsif aboveX? y
 				[self, nil]
@@ -121,13 +121,13 @@ module Gandhi
 		end
 	end
 
-	class Triangle < Shape
+	class TriangleShape < Shape
 		def initialize vertex0, vertex1, vertex2
 			@vertexes = [vertex0, vertex1, vertex2]
 		end
 	end
 
-	class TextureCoords
+	class TextureMapping
 		attr_reader :coords
 
 		def initialize coords
