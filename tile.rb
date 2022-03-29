@@ -41,14 +41,16 @@ module Gandhi
 	end
 
 	class QuadShape < Shape
+		attr_reader :top_left, :bottom_right
+
 		def initialize top_left, bottom_right
 			@top_left = top_left
 			@bottom_right = bottom_right
 			@vertexes = [
+				Point.new(bottom_right.x, top_left.y),
 				top_left,
 				Point.new(top_left.x, bottom_right.y),
-				bottom_right,
-				Point.new(bottom_right.x, top_left.y)
+				bottom_right
 			]
 		end
 
@@ -121,44 +123,46 @@ module Gandhi
 		end
 	end
 
-	class TriangleShape < Shape
-		def initialize vertex0, vertex1, vertex2
-			@vertexes = [vertex0, vertex1, vertex2]
+	class QuadTextureMapping < QuadShape
+		attr_reader :shape
+
+		def initialize quad
+			super Point.new(0, 0), Point.new(1, 1)
+			@shape = quad
 		end
-	end
 
-	class TextureMapping
-		attr_reader :coords
+		def convertXToTex x
+			(x - @shape.top_left.x) / (@shape.bottom_right.x - @shape.top_left.x)
+		end
 
-		def initialize coords
-			@coords = coords
+		def convertYToTex y
+			(y - @shape.top_left.y) / (@shape.bottom_right.y - @shape.top_left.y)
 		end
 	end
 
 	class Tile
 		extend Forwardable
-		attr_accessor :ttype, :shape, :coords
+		attr_accessor :ttype, :tex_map
 		def_delegators :@shape, :center, :leftY?, :aboveX, :intersectsY?, :intersectsX?
 
-		def initialize ttype, shape, coords
-			@shape = shape
+		def initialize ttype, tex_map
 			@ttype = ttype
-			@coords = coords
+			@tex_map = tex_map
 		end
 
 		def splitY x
-			@shape.splitY x
-			#todo
+			@tex_map.shape.splitY x
+			@tex_map.splitY @tex_map.convertXToTex(x)
 		end
 
 		def splitX y
-			@shape.splitX y
-			#todo
+			@tex_map.shape.splitX y
+			@tex_map.splitX @tex_map.convertYToTex(y)
 		end
 
 		def splitXY x, y
-			@shape.splitXY x, y
-			#todo
+			@tex_map.shape.splitXY x, y
+			@tex_map.splitXY @tex_map.convertXToTex(x), @tex_map.convertYToTex(y)
 		end
 	end
 end
