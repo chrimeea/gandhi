@@ -23,11 +23,25 @@ module Gandhi
 
 		def insert tile
 			quad_tree = find tile
-			if quad_tree.children.nil?
+			if quad_tree.bottom?
 				quad_tree.value.add tile
 			else
-				quad.splitXY(quad_tree.center).each { |q| quad_tree.insert q }
+				tile.splitXY(quad_tree.center).compact.each { |q| quad_tree.insert q }
 			end
+		end
+
+		def shapes quad
+			quad_tree = find quad
+			if quad_tree.bottom?
+				#todo: only if inside quad
+				quad_tree.value.to_a
+			else
+				quad.splitXY(quad_tree.center).compact.map { |q| shapes q }.flatten
+			end
+		end
+
+		def bottom?
+			@children.nil?
 		end
 
 		def empty?
@@ -48,8 +62,12 @@ module Gandhi
 			end
 		end
 
+		protected
+
+		attr_reader :quad, :children, :center, :value
+
 		def find shape
-			if @children.nil?
+			if bottom?
 				if @depth > 0
 					split
 				else
@@ -74,10 +92,6 @@ module Gandhi
 				end
 			end
 		end
-
-		protected
-
-		attr_reader :quad, :children, :center, :value
 
 		def split
 			top_right_quad, top_left_quad, bottom_left_quad, bottom_right_quad = @quad.splitXY @center
