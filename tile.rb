@@ -74,11 +74,11 @@ module Gandhi
 		end
 
 		def leftY? x
-			@bottom_right.x < x
+			@bottom_right.x <= x
 		end
 
 		def aboveX? y
-			@bottom_right.y < y
+			@bottom_right.y <= y
 		end
 
 		def intersectsY? x
