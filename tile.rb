@@ -117,8 +117,8 @@ module Gandhi
 
 		def splitXY center
 			left_quad, right_quad = splitY center.x
-			top_left_quad, bottom_left_quad = left_quad.splitX center.y
-			top_right_quad, bottom_right_quad = right_quad.splitX center.y
+			top_left_quad, bottom_left_quad = left_quad&.splitX center.y
+			top_right_quad, bottom_right_quad = right_quad&.splitX center.y
 			[top_right_quad, top_left_quad, bottom_left_quad, bottom_right_quad]
 		end
 	end
@@ -138,14 +138,18 @@ module Gandhi
 		def convertYToTex y
 			(y - @shape.top_left.y) / (@shape.bottom_right.y - @shape.top_left.y)
 		end
+
+		def convertXYToTex point
+			Point.new convertXToTex(point.x), convertYToTex(point.y)
+		end
 	end
 
 	class Tile
 		extend Forwardable
-		attr_accessor :ttype, :shape, :tex_map
+		attr_reader :ttype, :shape, :tex_map
 		def_delegators :@shape, :center, :leftY?, :aboveX, :intersectsY?, :intersectsX?
 
-		def initialize ttype, tex_map
+		def initialize tex_map, ttype = nil
 			@ttype = ttype
 			@shape = tex_map.shape
 			@tex_map = tex_map
@@ -161,9 +165,9 @@ module Gandhi
 			@tex_map.splitX @tex_map.convertYToTex(y)
 		end
 
-		def splitXY x, y
-			@shape.splitXY x, y
-			@tex_map.splitXY @tex_map.convertXToTex(x), @tex_map.convertYToTex(y)
+		def splitXY center
+			@shape.splitXY center
+			@tex_map.splitXY @tex_map.convertXYToTex(center)
 		end
 	end
 end
