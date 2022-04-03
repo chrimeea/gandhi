@@ -146,7 +146,7 @@ module Gandhi
     attr_reader :ttype, :shape, :tex_map
     def_delegators :@shape, :center, :leftY?, :aboveX?, :intersectsY?, :intersectsX?, :eql?, :hash
 
-    def initialize shape, tex_map, ttype = nil
+    def initialize shape, tex_map = QuadTextureMapping.new, ttype = nil
       @ttype = ttype
       @shape = shape
       @tex_map = tex_map
