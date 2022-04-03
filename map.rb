@@ -77,14 +77,14 @@ module Gandhi
       if shape.intersectsY?(@center.x) or shape.intersectsX?(@center.y)
 	return self
       else
-	if shape.aboveX? @center.x
-	  if shape.leftY? @center.y
+	if shape.aboveX? @center.y
+	  if shape.leftY? @center.x
 	    @children[:nw].find shape
 	  else
 	    @children[:ne].find shape
 	  end
 	else
-	  if shape.leftY? @center.y
+	  if shape.leftY? @center.x
 	    @children[:sw].find shape
 	  else
 	    @children[:se].find shape

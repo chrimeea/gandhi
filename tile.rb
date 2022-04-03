@@ -32,7 +32,7 @@ module Gandhi
     end
 
     def eql? other
-      @vertexes == other.vertexes
+      @vertexes.eql? other.vertexes
     end
 
     def hash
@@ -56,14 +56,6 @@ module Gandhi
 
     def to_s
       "Quad(#{@top_left}, #{@bottom_right})"
-    end
-
-    def eql? other
-      @vertexes.eql? other.vertexes
-    end
-
-    def hash
-      @vertexes.hash
     end
 
     def center
@@ -152,13 +144,12 @@ module Gandhi
   class Tile
     extend Forwardable
     attr_reader :ttype, :shape, :tex_map
-    def_delegators :@shape, :center, :leftY?, :aboveX?, :intersectsY?, :intersectsX?
+    def_delegators :@shape, :center, :leftY?, :aboveX?, :intersectsY?, :intersectsX?, :eql?, :hash
 
     def initialize shape, tex_map, ttype = nil
       @ttype = ttype
       @shape = shape
       @tex_map = tex_map
-      fail unless tex_map
     end
 
     def splitY x
