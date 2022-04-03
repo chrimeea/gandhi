@@ -73,6 +73,14 @@ module Gandhi
       )
     end
 
+    def width
+      @bottom_right.x - @top_left.x
+    end
+
+    def height
+      @bottom_right.y - @top_left.y
+    end
+    
     def leftY? x
       @bottom_right.x <= x
     end
@@ -121,23 +129,23 @@ module Gandhi
       top_right_quad, bottom_right_quad = right_quad&.splitX center.y
       [top_right_quad, top_left_quad, bottom_left_quad, bottom_right_quad]
     end
+
+    def convertX quad, x
+      (x - @top_left.x) * quad.width / width + quad.top_left.x
+    end
+    
+    def convertY quad, y
+      (y - @top_left.y) * quad.height / height + quad.top_left.y
+    end
+    
+    def convertXY quad, point
+      Point.new convertX(quad, point.x), convertY(quad, point.y)
+    end
   end
 
   class QuadTextureMapping < QuadShape
     def initialize
       super Point.new(0, 0), Point.new(1, 1)
-    end
-
-    def self.convertXToTex quad, x
-      (x - quad.top_left.x) / (quad.bottom_right.x - quad.top_left.x)
-    end
-    
-    def self.convertYToTex quad, y
-      (y - quad.top_left.y) / (quad.bottom_right.y - quad.top_left.y)
-    end
-    
-    def self.convertXYToTex quad, point
-      Point.new convertXToTex(quad, point.x), convertYToTex(quad, point.y)
     end
   end
 
@@ -150,11 +158,12 @@ module Gandhi
       @ttype = ttype
       @shape = shape
       @tex_map = tex_map
+      fail unless tex_map
     end
 
     def splitY x
       left_shape, right_shape = @shape.splitY x
-      left_tex, right_tex = @tex_map.splitY QuadTextureMapping.convertXToTex(@shape, x)
+      left_tex, right_tex = @tex_map.splitY @shape.convertX(@tex_map, x)
       [
         Tile.new(left_shape, left_tex),
         Tile.new(right_shape, right_tex)
@@ -163,7 +172,7 @@ module Gandhi
 
     def splitX y
       above_shape, below_shape = @shape.splitX y
-      above_tex, below_tex = @tex_map.splitX QuadTextureMapping.convertYToTex(@shape, y)
+      above_tex, below_tex = @tex_map.splitX @shape.convertY(@tex_map, y)
       [
         Tile.new(above_shape, above_tex),
         Tile.new(below_shape, below_tex)
@@ -172,7 +181,7 @@ module Gandhi
 
     def splitXY center
       ne_shape, nw_shape, sw_shape, se_shape = @shape.splitXY center
-      ne_tex, nw_tex, sw_tex, se_tex = @tex_map.splitXY QuadTextureMapping.convertXYToTex(@shape, center)
+      ne_tex, nw_tex, sw_tex, se_tex = @tex_map.splitXY @shape.convertXY(@tex_map, center)
       [
         Tile.new(ne_shape, ne_tex),
         Tile.new(nw_shape, nw_tex),
