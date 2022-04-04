@@ -12,7 +12,7 @@ module Gandhi
     end
 
     def eql? other
-      x == other.x and y == other.y
+      x == other.x && y == other.y
     end
 
     def hash
@@ -82,11 +82,11 @@ module Gandhi
     end
 
     def intersectsY? x
-      @top_left.x < x and @bottom_right.x > x
+      @top_left.x < x && @bottom_right.x > x
     end
 
     def intersectsX? y
-      @top_left.y < y and @bottom_right.y > y
+      @top_left.y < y && @bottom_right.y > y
     end
 
     def splitY x
@@ -133,28 +133,70 @@ module Gandhi
     def convertXY quad, point
       Point.new convertX(quad, point.x), convertY(quad, point.y)
     end
-  end
 
+    def splitQuad quad
+      quad
+    end
+    
+    def intersection quad
+      top_left_x = intersectsX? quad.top_left.y
+      top_left_y = intersectsY? quad.top_left.x
+      bottom_right_x = intersectsX? quad.bottom_right.y
+      bottom_right_y = intersectsY? quad.bottom_right.x
+      top_left_in = top_left_x && top_left_y
+      top_right_in = top_left_x && bottom_right_y
+      bottom_left_in = bottom_right_x && top_left_y
+      bottom_right_in = bottom_right_x && bottom_right_y
+      if top_left_in
+        if top_right_in
+          if bottom_left_in # (A, B, C, D)
+            return quad
+          else # (A, B)
+            return QuadShape.new(quad.top_left, Point.new(quad.bottom_right.x, @bottom_right.y))
+          end
+        elsif bottom_left_in # (A, D)
+          return QuadShape.new(@top_left, Point.new(@bottom_right.x, quad.bottom_right.y))
+        else # (A)
+          return QuadShape.new(quad.top_left, @bottom_right)
+        end
+      elsif top_right_in
+        if bottom_right_in # (B, C)
+          return QuadShape.new(Point.new(@top_left.x, quad.top_left.y), quad.bottom_right)
+        else # (B)
+          return QuadShape.new(Point.new(@top_left.x, quad.top_left.y), Point.new(quad.bottom_right.x, @bottom_right.y))
+        end
+      elsif bottom_right_in
+        if bottom_left_in # (D, C)
+          return QuadShape.new(Point.new(quad.top_left.x, @top_left.y), quad.bottom_right)
+        else # (C)
+          return QuadShape.new(@top_left, quad.bottom_right)
+        end
+      elsif bottom_left_in # (D)
+        return QuadShape.new(Point.new(quad.top_left.x, quad.bottom_right.y), Point.new(@bottom_right.x, @top_left.y))
+      else
+        return nil
+      end
+    end
+  end
+  
   class QuadTextureMapping < QuadShape
     def initialize
       super Point.new(0, 0), Point.new(1, 1)
     end
   end
 
-  class Tile
-    extend Forwardable
-    attr_reader :ttype, :shape, :tex_map
-    def_delegators :@shape, :center, :leftY?, :aboveX?, :intersectsY?, :intersectsX?, :eql?, :hash
+  class Tile < QuadShape
+    attr_reader :ttype, :tex_map
 
     def initialize shape, tex_map = QuadTextureMapping.new, ttype = nil
+      super(shape.top_left, shape.bottom_right)
       @ttype = ttype
-      @shape = shape
       @tex_map = tex_map
     end
 
     def splitY x
-      left_shape, right_shape = @shape.splitY x
-      left_tex, right_tex = @tex_map.splitY @shape.convertX(@tex_map, x)
+      left_shape, right_shape = super x
+      left_tex, right_tex = @tex_map.splitY convertX(@tex_map, x)
       [
         Tile.new(left_shape, left_tex),
         Tile.new(right_shape, right_tex)
@@ -162,8 +204,8 @@ module Gandhi
     end
 
     def splitX y
-      above_shape, below_shape = @shape.splitX y
-      above_tex, below_tex = @tex_map.splitX @shape.convertY(@tex_map, y)
+      above_shape, below_shape = super y
+      above_tex, below_tex = @tex_map.splitX convertY(@tex_map, y)
       [
         Tile.new(above_shape, above_tex),
         Tile.new(below_shape, below_tex)
@@ -171,8 +213,8 @@ module Gandhi
     end
 
     def splitXY center
-      ne_shape, nw_shape, sw_shape, se_shape = @shape.splitXY center
-      ne_tex, nw_tex, sw_tex, se_tex = @tex_map.splitXY @shape.convertXY(@tex_map, center)
+      ne_shape, nw_shape, sw_shape, se_shape = super center
+      ne_tex, nw_tex, sw_tex, se_tex = @tex_map.splitXY convertXY(@tex_map, center)
       [
         Tile.new(ne_shape, ne_tex),
         Tile.new(nw_shape, nw_tex),
@@ -181,8 +223,13 @@ module Gandhi
       ]
     end
 
+    def splitQuad quad
+      return nil if quad.nil?
+      Tile.new(quad, QuadShape.new(convertXY(@tex_map, quad.top_left), convertXY(@tex_map, quad.bottom_right)))
+    end
+
     def to_s
-      "Tile(#{@shape}:#{@tex_map})"
+      "Tile(#{super}:#{@tex_map})"
     end
   end
 end

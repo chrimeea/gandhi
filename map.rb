@@ -33,8 +33,7 @@ module Gandhi
     def shapes quad = @quad
       quad_tree = find quad
       if quad_tree.bottom?
-	#todo: only if inside quad
-	quad_tree.value.to_a
+        quad_tree.value.to_a.map { |q| q.splitQuad(quad.intersection(q) || q.intersection(quad)) }.compact
       else
 	quad.splitXY(quad_tree.center).compact.map { |q| shapes q }.flatten
       end
@@ -54,7 +53,7 @@ module Gandhi
 	quad_tree.value = nil
 	quad_tree.children = nil
 	parent = quad_tree.parent
-	if parent and parent.empty?
+	if parent && parent.empty?
 	  parent.delete
 	end
       else
@@ -74,7 +73,7 @@ module Gandhi
 	  return self
 	end
       end
-      if shape.intersectsY?(@center.x) or shape.intersectsX?(@center.y)
+      if shape.intersectsY?(@center.x) || shape.intersectsX?(@center.y)
 	return self
       else
 	if shape.aboveX? @center.y
