@@ -39,14 +39,6 @@ module Gandhi
       end
     end
 
-    def bottom?
-      @children.nil?
-    end
-
-    def empty?
-      @children.all? { |q| q.children.nil?  }
-    end
-
     def delete quad = @quad
       quad_tree = find quad
       if quad_tree.quad == quad
@@ -64,6 +56,14 @@ module Gandhi
     protected
 
     attr_reader :quad, :children, :center, :value
+
+    def bottom?
+      @children.nil?
+    end
+
+    def empty?
+      @children.all? { |q| q.children.nil? }
+    end
 
     def find shape
       if bottom?
