@@ -1,0 +1,5 @@
+require 'test/unit'
+require 'set'
+require_relative 'map'
+require_relative 'tile'
+require_relative 'test'
