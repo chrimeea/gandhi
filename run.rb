@@ -8,7 +8,7 @@ require_relative 'tile'
 #puts quad2.intersection quad1
 
 quad1 = Gandhi::QuadShape.new(Gandhi::Point.new(0, 0), Gandhi::Point.new(10, 10)) 
-tile1 = Gandhi::Tile.new quad1
+tile1 = Gandhi::QuadTile.new quad1
 tree = Gandhi::QuadTree.new quad1, 2
 tree.insert tile1
 quad2 = Gandhi::QuadShape.new(Gandhi::Point.new(3, 3), Gandhi::Point.new(7, 7)) 

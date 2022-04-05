@@ -185,7 +185,7 @@ module Gandhi
     end
   end
 
-  class Tile < QuadShape
+  class QuadTile < QuadShape
     attr_reader :ttype, :tex_map
 
     def initialize shape, tex_map = QuadTextureMapping.new, ttype = nil
@@ -198,8 +198,8 @@ module Gandhi
       left_shape, right_shape = super x
       left_tex, right_tex = @tex_map.splitY convertX(@tex_map, x)
       [
-        Tile.new(left_shape, left_tex),
-        Tile.new(right_shape, right_tex)
+        QuadTile.new(left_shape, left_tex),
+        QuadTile.new(right_shape, right_tex)
       ]
     end
 
@@ -207,8 +207,8 @@ module Gandhi
       above_shape, below_shape = super y
       above_tex, below_tex = @tex_map.splitX convertY(@tex_map, y)
       [
-        Tile.new(above_shape, above_tex),
-        Tile.new(below_shape, below_tex)
+        QuadTile.new(above_shape, above_tex),
+        QuadTile.new(below_shape, below_tex)
       ]
     end
 
@@ -216,20 +216,20 @@ module Gandhi
       ne_shape, nw_shape, sw_shape, se_shape = super center
       ne_tex, nw_tex, sw_tex, se_tex = @tex_map.splitXY convertXY(@tex_map, center)
       [
-        Tile.new(ne_shape, ne_tex),
-        Tile.new(nw_shape, nw_tex),
-        Tile.new(sw_shape, sw_tex),
-        Tile.new(se_shape, se_tex)
+        QuadTile.new(ne_shape, ne_tex),
+        QuadTile.new(nw_shape, nw_tex),
+        QuadTile.new(sw_shape, sw_tex),
+        QuadTile.new(se_shape, se_tex)
       ]
     end
 
     def splitQuad quad
       return nil if quad.nil?
-      Tile.new(quad, QuadShape.new(convertXY(@tex_map, quad.top_left), convertXY(@tex_map, quad.bottom_right)))
+      QuadTile.new(quad, QuadShape.new(convertXY(@tex_map, quad.top_left), convertXY(@tex_map, quad.bottom_right)))
     end
 
     def to_s
-      "Tile(#{super}:#{@tex_map})"
+      "QuadTile(#{super}:#{@tex_map})"
     end
   end
 end
