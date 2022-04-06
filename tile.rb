@@ -134,11 +134,17 @@ module Gandhi
       Point.new convertX(quad, point.x), convertY(quad, point.y)
     end
 
-    def splitQuad quad
+    def split_quad quad
       quad
     end
-    
+
     def intersection quad
+      intersection_partial(quad) || quad.intersection_partial(self)
+    end
+    
+    protected
+    
+    def intersection_partial quad
       top_left_x = intersectsX? quad.top_left.y
       top_left_y = intersectsY? quad.top_left.x
       bottom_right_x = intersectsX? quad.bottom_right.y
@@ -155,7 +161,7 @@ module Gandhi
             return QuadShape.new(quad.top_left, Point.new(quad.bottom_right.x, @bottom_right.y))
           end
         elsif bottom_left_in # (A, D)
-          return QuadShape.new(@top_left, Point.new(@bottom_right.x, quad.bottom_right.y))
+          return QuadShape.new(quad.top_left, Point.new(@bottom_right.x, quad.bottom_right.y))
         else # (A)
           return QuadShape.new(quad.top_left, @bottom_right)
         end
@@ -172,7 +178,7 @@ module Gandhi
           return QuadShape.new(@top_left, quad.bottom_right)
         end
       elsif bottom_left_in # (D)
-        return QuadShape.new(Point.new(quad.top_left.x, quad.bottom_right.y), Point.new(@bottom_right.x, @top_left.y))
+        return QuadShape.new(Point.new(quad.top_left.x, @top_left.y), Point.new(@bottom_right.x, quad.bottom_right.y))
       else
         return nil
       end
@@ -198,8 +204,8 @@ module Gandhi
       left_shape, right_shape = super x
       left_tex, right_tex = @tex_map.splitY convertX(@tex_map, x)
       [
-        QuadTile.new(left_shape, left_tex),
-        QuadTile.new(right_shape, right_tex)
+        if left_shape then QuadTile.new(left_shape, left_tex) else nil end,
+        if right_shape then QuadTile.new(right_shape, right_tex) else nil end
       ]
     end
 
@@ -207,8 +213,8 @@ module Gandhi
       above_shape, below_shape = super y
       above_tex, below_tex = @tex_map.splitX convertY(@tex_map, y)
       [
-        QuadTile.new(above_shape, above_tex),
-        QuadTile.new(below_shape, below_tex)
+        if above_shape then QuadTile.new(above_shape, above_tex) else nil end,
+        if below_shape then QuadTile.new(below_shape, below_tex) else nil end
       ]
     end
 
@@ -216,14 +222,14 @@ module Gandhi
       ne_shape, nw_shape, sw_shape, se_shape = super center
       ne_tex, nw_tex, sw_tex, se_tex = @tex_map.splitXY convertXY(@tex_map, center)
       [
-        QuadTile.new(ne_shape, ne_tex),
-        QuadTile.new(nw_shape, nw_tex),
-        QuadTile.new(sw_shape, sw_tex),
-        QuadTile.new(se_shape, se_tex)
+        if ne_shape then QuadTile.new(ne_shape, ne_tex) else nil end,
+        if nw_shape then QuadTile.new(nw_shape, nw_tex) else nil end,
+        if sw_shape then QuadTile.new(sw_shape, sw_tex) else nil end,
+        if se_shape then QuadTile.new(se_shape, se_tex) else nil end
       ]
     end
 
-    def splitQuad quad
+    def split_quad quad
       return nil if quad.nil?
       QuadTile.new(quad, QuadShape.new(convertXY(@tex_map, quad.top_left), convertXY(@tex_map, quad.bottom_right)))
     end

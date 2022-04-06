@@ -33,7 +33,7 @@ module Gandhi
     def shapes quad = @quad
       quad_tree = find quad
       if quad_tree.bottom?
-        quad_tree.value.to_a.map { |q| q.splitQuad(quad.intersection(q) || q.intersection(quad)) }.compact
+        quad_tree.value.to_a.map { |q| q.split_quad(quad.intersection(q)) }.compact
       else
 	quad.splitXY(quad_tree.center).compact.map { |q| shapes q }.flatten
       end
