@@ -41,15 +41,10 @@ module Gandhi
 
     def delete quad = @quad
       quad_tree = find quad
-      if quad_tree.quad == quad
-	quad_tree.value = nil
-	quad_tree.children = nil
-	parent = quad_tree.parent
-	if parent && parent.empty?
-	  parent.delete
-	end
-      else
-	quad.splitXY(quad_tree.center).each { |q| quad_tree.delete q }
+      if quad_tree.quad.eql? quad
+        quad_tree.delete_tree
+      elsif !quad_tree.bottom?
+	quad.splitXY(quad_tree.center).compact.each { |q| quad_tree.delete q }
       end
     end
 
@@ -57,6 +52,15 @@ module Gandhi
 
     attr_reader :quad, :children, :center, :value
 
+    def delete_tree
+	if @parent&.empty?
+	  @parent.delete_tree
+        else
+	  @value = nil
+	  @children = nil
+	end
+    end
+    
     def bottom?
       @children.nil?
     end

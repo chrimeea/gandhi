@@ -33,9 +33,9 @@ module Gandhi
       t = QuadTile.new q
       r = QuadTree.new q, 2
       r.insert t
-      #r.delete t
-      #puts r.shapes q
-      #todo: fix delete
+      r.delete t
+      assert_empty(r.shapes q)
+      #todo: add more cases after change
     end
   end
 end
