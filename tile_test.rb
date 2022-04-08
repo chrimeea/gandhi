@@ -222,7 +222,21 @@ module Gandhi
       assert_true(nw.eql? QuadShape.new(Point.new(1, 1), Point.new(2, 2)))
       assert_true(sw.eql? QuadShape.new(Point.new(1, 2), Point.new(2, 5)))
       assert_true(se.eql? QuadShape.new(Point.new(2, 2), Point.new(5, 5)))
-      #todo: add all cases after change
+      ne, nw, sw, se = QuadTile.new(QuadShape.new(Point.new(1, 1), Point.new(5, 5)), QuadTextureMapping.new).splitXY Point.new(0, 1)
+      assert_nil(ne)
+      assert_nil(nw)
+      assert_nil(sw)
+      assert_true(se.eql? QuadShape.new(Point.new(1, 1), Point.new(5, 5)))
+      ne, nw, sw, se = QuadTile.new(QuadShape.new(Point.new(1, 1), Point.new(5, 5)), QuadTextureMapping.new).splitXY Point.new(5, 1)
+      assert_nil(ne)
+      assert_nil(nw)
+      assert_true(sw.eql? QuadShape.new(Point.new(1, 1), Point.new(5, 5)))
+      assert_nil(se)
+      ne, nw, sw, se = QuadTile.new(QuadShape.new(Point.new(1, 1), Point.new(5, 5)), QuadTextureMapping.new).splitXY Point.new(1, 3)
+      assert_true(ne.eql? QuadShape.new(Point.new(1, 1), Point.new(5, 3)))
+      assert_nil(nw)
+      assert_nil(sw)
+      assert_true(se.eql? QuadShape.new(Point.new(1, 3), Point.new(5, 5)))
     end
 
     def test_split_quad
