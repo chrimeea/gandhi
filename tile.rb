@@ -145,42 +145,46 @@ module Gandhi
     protected
     
     def intersection_partial quad
-      top_left_x = intersectsX? quad.top_left.y
-      top_left_y = intersectsY? quad.top_left.x
-      bottom_right_x = intersectsX? quad.bottom_right.y
-      bottom_right_y = intersectsY? quad.bottom_right.x
-      top_left_in = top_left_x && top_left_y
-      top_right_in = top_left_x && bottom_right_y
-      bottom_left_in = bottom_right_x && top_left_y
-      bottom_right_in = bottom_right_x && bottom_right_y
-      if top_left_in
-        if top_right_in
-          if bottom_left_in # (A, B, C, D)
-            return quad
-          else # (A, B)
-            return QuadShape.new(quad.top_left, Point.new(quad.bottom_right.x, @bottom_right.y))
-          end
-        elsif bottom_left_in # (A, D)
-          return QuadShape.new(quad.top_left, Point.new(@bottom_right.x, quad.bottom_right.y))
-        else # (A)
-          return QuadShape.new(quad.top_left, @bottom_right)
-        end
-      elsif top_right_in
-        if bottom_right_in # (B, C)
-          return QuadShape.new(Point.new(@top_left.x, quad.top_left.y), quad.bottom_right)
-        else # (B)
-          return QuadShape.new(Point.new(@top_left.x, quad.top_left.y), Point.new(quad.bottom_right.x, @bottom_right.y))
-        end
-      elsif bottom_right_in
-        if bottom_left_in # (D, C)
-          return QuadShape.new(Point.new(quad.top_left.x, @top_left.y), quad.bottom_right)
-        else # (C)
-          return QuadShape.new(@top_left, quad.bottom_right)
-        end
-      elsif bottom_left_in # (D)
-        return QuadShape.new(Point.new(quad.top_left.x, @top_left.y), Point.new(@bottom_right.x, quad.bottom_right.y))
+      if eql? quad
+        return quad
       else
-        return nil
+        top_left_x = intersectsX? quad.top_left.y
+        top_left_y = intersectsY? quad.top_left.x
+        bottom_right_x = intersectsX? quad.bottom_right.y
+        bottom_right_y = intersectsY? quad.bottom_right.x
+        top_left_in = top_left_x && top_left_y
+        top_right_in = top_left_x && bottom_right_y
+        bottom_left_in = bottom_right_x && top_left_y
+        bottom_right_in = bottom_right_x && bottom_right_y
+        if top_left_in
+          if top_right_in
+            if bottom_left_in # (A, B, C, D)
+              return quad
+            else # (A, B)
+              return QuadShape.new(quad.top_left, Point.new(quad.bottom_right.x, @bottom_right.y))
+            end
+          elsif bottom_left_in # (A, D)
+            return QuadShape.new(quad.top_left, Point.new(@bottom_right.x, quad.bottom_right.y))
+          else # (A)
+            return QuadShape.new(quad.top_left, @bottom_right)
+          end
+        elsif top_right_in
+          if bottom_right_in # (B, C)
+            return QuadShape.new(Point.new(@top_left.x, quad.top_left.y), quad.bottom_right)
+          else # (B)
+            return QuadShape.new(Point.new(@top_left.x, quad.top_left.y), Point.new(quad.bottom_right.x, @bottom_right.y))
+          end
+        elsif bottom_right_in
+          if bottom_left_in # (D, C)
+            return QuadShape.new(Point.new(quad.top_left.x, @top_left.y), quad.bottom_right)
+          else # (C)
+            return QuadShape.new(@top_left, quad.bottom_right)
+          end
+        elsif bottom_left_in # (D)
+          return QuadShape.new(Point.new(quad.top_left.x, @top_left.y), Point.new(@bottom_right.x, quad.bottom_right.y))
+        else
+          return nil
+        end
       end
     end
   end

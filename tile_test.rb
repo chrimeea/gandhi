@@ -138,6 +138,12 @@ module Gandhi
 
     def test_intersection
       q1 = QuadShape.new(Point.new(1, 1), Point.new(3, 5))
+      assert_true(q1.intersection(q1).eql? q1)
+      q1 = QuadShape.new(Point.new(1, 1), Point.new(4, 5))
+      q2 = QuadShape.new(Point.new(1, 1), Point.new(5, 6))
+      assert_true(q1.intersection(q2).eql? q1)
+      assert_true(q2.intersection(q1).eql? q1)
+      q1 = QuadShape.new(Point.new(1, 1), Point.new(3, 5))
       q2 = QuadShape.new(Point.new(1, 5), Point.new(4, 6))
       assert_nil(q1.intersection(q2))
       assert_nil(q2.intersection(q1))

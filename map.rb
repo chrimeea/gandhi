@@ -39,12 +39,12 @@ module Gandhi
       end
     end
 
-    def delete quad = @quad
+    def free quad = @quad
       quad_tree = find quad
       if quad_tree.quad.eql? quad
-        quad_tree.delete_tree
+        quad_tree.free_tree
       elsif !quad_tree.bottom?
-	quad.splitXY(quad_tree.center).compact.each { |q| quad_tree.delete q }
+	quad.splitXY(quad_tree.center).compact.each { |q| quad_tree.free q }
       end
     end
 
@@ -52,7 +52,7 @@ module Gandhi
 
     attr_reader :quad, :children, :center, :value
 
-    def delete_tree
+    def free_tree
 	if @parent&.empty?
 	  @parent.delete_tree
         else

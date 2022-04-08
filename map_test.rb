@@ -12,8 +12,8 @@ module Gandhi
 
     def test_insert
       q = QuadShape.new(Point.new(0, 0), Point.new(10, 10)) 
-      t = QuadTile.new q
       r = QuadTree.new q, 2
+      t = QuadTile.new q
       r.insert t
       q = QuadShape.new(Point.new(3, 3), Point.new(7, 7)) 
       s = r.shapes q
@@ -28,13 +28,17 @@ module Gandhi
       #todo: add more cases after change
     end
 
-    def test_delete
+    def test_free
       q = QuadShape.new(Point.new(0, 0), Point.new(10, 10)) 
+      r = QuadTree.new q, 1
       t = QuadTile.new q
-      r = QuadTree.new q, 2
       r.insert t
-      r.delete t
-      assert_empty(r.shapes q)
+      r.free QuadShape.new(Point.new(0, 0), Point.new(6, 6))
+      s = r.shapes
+      assert_equal(s.size, 3)
+      assert_true(s[0].eql? QuadShape.new(Point.new(5, 0), Point.new(10, 5)))
+      assert_true(s[1].eql? QuadShape.new(Point.new(0, 5), Point.new(5, 10)))
+      assert_true(s[2].eql? QuadShape.new(Point.new(5, 5), Point.new(10, 10)))
       #todo: add more cases after change
     end
   end
