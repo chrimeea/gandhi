@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gandhi
   class Point
     attr_accessor :x, :y
@@ -5,6 +7,7 @@ module Gandhi
     def initialize x, y
       @x = x.to_f
       @y = y.to_f
+      freeze
     end
 
     def translate x, y
@@ -29,6 +32,7 @@ module Gandhi
 
     def initialize vertexes
       @vertexes = vertexes
+      freeze
     end
 
     def eql? other
@@ -46,7 +50,7 @@ module Gandhi
     def initialize top_left, bottom_right
       @top_left = top_left
       @bottom_right = bottom_right
-      @vertexes = [
+      super [
 	Point.new(bottom_right.x, top_left.y),
 	top_left,
 	Point.new(top_left.x, bottom_right.y),
@@ -199,9 +203,9 @@ module Gandhi
     attr_reader :ttype, :tex_map
 
     def initialize shape, tex_map = QuadTextureMapping.new, ttype = nil
-      super(shape.top_left, shape.bottom_right)
       @ttype = ttype
       @tex_map = tex_map
+      super(shape.top_left, shape.bottom_right)
     end
 
     def splitY x

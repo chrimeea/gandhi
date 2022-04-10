@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gandhi
   class PointTest < Test::Unit::TestCase
     def test_initialize

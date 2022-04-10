@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gandhi
   class QuadTree
     def initialize quad, depth, parent = nil
@@ -5,8 +7,7 @@ module Gandhi
       @depth = depth
       @value = Set.new
       @center = quad.center
-      @children = nil
-      @parent = nil
+      @parent = @children = nil
     end
 
     def to_s
@@ -56,8 +57,7 @@ module Gandhi
 	if @parent&.empty?
 	  @parent.delete_tree
         else
-	  @value = nil
-	  @children = nil
+	  @value = @children= nil
 	end
     end
     
