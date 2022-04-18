@@ -4,8 +4,8 @@ module Gandhi
   class CharTexture
     def initialize filename
       @data = File.read(filename).split "\n"
-      @width = 3
-      @height = 3
+      @width = @data[0].size
+      @height = @data.size
     end
 
     def render tile, screen
@@ -13,7 +13,7 @@ module Gandhi
 	Point.new(tile.tex_map.top_left.x * @width, tile.tex_map.top_left.y * @height),
 	Point.new(tile.tex_map.bottom_right.x * @width, tile.tex_map.bottom_right.y * @height)
       )
-      tile.height.to_i.times { |i| screen[i + tile.top_left.y][tile.top_left.x..tile.bottom_right.x] = @data[i + quad.top_left.y][quad.top_left.x..quad.bottom_right.x] }
+      (tile.height.to_i + 1).times { |i| screen[i + tile.top_left.y][tile.top_left.x..tile.bottom_right.x] = @data[i + quad.top_left.y][quad.top_left.x..quad.bottom_right.x] }
     end
   end
   
@@ -22,7 +22,7 @@ module Gandhi
       config = YAML.load_file('config.yml')
       load_assets
       generate_map
-      @screen = Array.new(192) { String.new(' ' * 192) }
+      @screen = Array.new(48) { String.new(' ' * 48) }
       main_window config['ui']
       render_tiles
       timer = TkAfter.new(1000, -1, proc { play })
@@ -35,13 +35,12 @@ module Gandhi
     end
     
     def generate_map
-      max_x = 191
-      max_y = 191
+      max_x = 47
+      max_y = 47
       area_quad = QuadShape.new(Point.new(0, 0), Point.new(max_x, max_y))
       @map_tree = QuadTree.new(area_quad, 3)
-      #x = rand(max_x - 2)
-      #y = rand(max_y - 2)
-      x = y = 0
+      x = rand(max_x - 2)
+      y = rand(max_y - 2)
       tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 2, y + 2)), QuadTextureMapping.new, 1)
       @map_tree.insert tile
     end
