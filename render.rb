@@ -24,7 +24,7 @@ module Gandhi
       @width = config['window']['width']
       load_assets
       generate_map
-      @screen = Array.new(48) { String.new(' ' * 48) }
+      @screen = Array.new(@height) { String.new(' ' * @width) }
       main_window config
       render_tiles
       timer = TkAfter.new(1000, -1, proc { play })
