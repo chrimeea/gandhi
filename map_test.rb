@@ -13,7 +13,7 @@ module Gandhi
     end
 
     def test_insert
-      q = QuadShape.new(Point.new(0, 0), Point.new(10, 10)) 
+      q = QuadShape.new(Point.new(0, 0), Point.new(10, 10))
       r = QuadTree.new q, 2
       r.insert QuadTile.new q
       s = r.shapes QuadShape.new(Point.new(3, 3), Point.new(7, 7))

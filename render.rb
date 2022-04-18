@@ -1,29 +1,65 @@
 # frozen_string_literal: true
 
 module Gandhi
+  class CharTexture
+    def initialize filename
+      @data = File.read(filename).split "\n"
+      @width = 3
+      @height = 3
+    end
+
+    def render tile, screen
+      quad = QuadShape.new(
+	Point.new(tile.tex_map.top_left.x * @width, tile.tex_map.top_left.y * @height),
+	Point.new(tile.tex_map.bottom_right.x * @width, tile.tex_map.bottom_right.y * @height)
+      )
+      tile.height.to_i.times { |i| screen[i + tile.top_left.y][tile.top_left.x..tile.bottom_right.x] = @data[i + quad.top_left.y][quad.top_left.x..quad.bottom_right.x] }
+    end
+  end
+  
   class UserInterface
     def initialize
       config = YAML.load_file('config.yml')
       load_assets
+      generate_map
+      @screen = Array.new(192) { String.new(' ' * 192) }
       main_window config['ui']
+      render_tiles
       timer = TkAfter.new(1000, -1, proc { play })
       timer.start
     end
 
+    def render_tiles
+      tiles = @map_tree.shapes QuadShape.new(Point.new(0, 0), Point.new(191, 191))
+      tiles.each { |tile| @asset[tile.ttype].render(tile, @screen) }
+    end
+    
+    def generate_map
+      max_x = 191
+      max_y = 191
+      area_quad = QuadShape.new(Point.new(0, 0), Point.new(max_x, max_y))
+      @map_tree = QuadTree.new(area_quad, 3)
+      #x = rand(max_x - 2)
+      #y = rand(max_y - 2)
+      x = y = 0
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 2, y + 2)), QuadTextureMapping.new, 1)
+      @map_tree.insert tile
+    end
+    
     def play
-      @resultsVar.value = @asset[1]
+      @label_var.value = @screen.join("\n")
     end
     
     def load_assets
       @asset = []
-      Dir.glob('assets/*.txt') { |filename| @asset[filename[15..-5].to_i] = File.read(filename) }
+      Dir.glob('assets/*.txt') { |filename| @asset[filename[15..-5].to_i] = CharTexture.new(filename) }
     end
     
     def main_window ui_config
       root = TkRoot.new
       root.geometry("#{ui_config['width']}x#{ui_config['height']}")
       root.title = ui_config['title']
-      screen = TkLabel.new(root) do
+      label = TkLabel.new(root) do
         textvariable
         font TkFont.new(ui_config['font'])
         foreground  'black'
@@ -33,8 +69,8 @@ module Gandhi
         justify 'left'
         pack("side" => "left",  "padx"=> "0", "pady"=> "0")
       end
-      @resultsVar = TkVariable.new
-      screen['textvariable'] = @resultsVar
+      @label_var = TkVariable.new
+      label['textvariable'] = @label_var
     end
 
     def run

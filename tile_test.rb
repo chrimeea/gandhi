@@ -117,7 +117,7 @@ module Gandhi
       assert_true(bottom_left.eql? QuadShape.new(Point.new(1, 2), Point.new(2, 4)))
       assert_true(bottom_right.eql? QuadShape.new(Point.new(2, 2), Point.new(3, 4)))
       top_right, top_left, bottom_left, bottom_right = QuadShape.new(Point.new(1, 1), Point.new(3, 4)).splitXY Point.new(5, 4)
-      #todo: add all cases after change
+      #todo: add all cases
     end
 
     def test_convertX
