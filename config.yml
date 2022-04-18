@@ -1,5 +1,7 @@
-ui:
-  width: 800
-  height: 600
+window:
+  width: 47
+  height: 47
   title: Gandhi
-  font: courier 10
+font:
+  face: courier
+  size: 10

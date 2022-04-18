@@ -20,10 +20,12 @@ module Gandhi
   class UserInterface
     def initialize
       config = YAML.load_file('config.yml')
+      @height = config['window']['height']
+      @width = config['window']['width']
       load_assets
       generate_map
       @screen = Array.new(48) { String.new(' ' * 48) }
-      main_window config['ui']
+      main_window config
       render_tiles
       timer = TkAfter.new(1000, -1, proc { play })
       timer.start
@@ -35,12 +37,10 @@ module Gandhi
     end
     
     def generate_map
-      max_x = 47
-      max_y = 47
-      area_quad = QuadShape.new(Point.new(0, 0), Point.new(max_x, max_y))
+      area_quad = QuadShape.new(Point.new(0, 0), Point.new(@width - 1, @height - 1))
       @map_tree = QuadTree.new(area_quad, 3)
-      x = rand(max_x - 2)
-      y = rand(max_y - 2)
+      x = rand(@width - 3)
+      y = rand(@height - 3)
       tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 2, y + 2)), QuadTextureMapping.new, 1)
       @map_tree.insert tile
     end
@@ -54,16 +54,15 @@ module Gandhi
       Dir.glob('assets/*.txt') { |filename| @asset[filename[15..-5].to_i] = CharTexture.new(filename) }
     end
     
-    def main_window ui_config
+    def main_window config
       root = TkRoot.new
-      root.geometry("#{ui_config['width']}x#{ui_config['height']}")
-      root.title = ui_config['title']
+      root.title = config['window']['title']
       label = TkLabel.new(root) do
         textvariable
-        font TkFont.new(ui_config['font'])
+        font TkFont.new("#{config['font']['face']} #{config['font']['size']}")
         foreground  'black'
-        height ui_config['height']
-        width ui_config['width']
+        height config['window']['height']
+        width config['window']['width']
         anchor 'nw'
         justify 'left'
         pack("side" => "left",  "padx"=> "0", "pady"=> "0")
