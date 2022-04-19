@@ -69,6 +69,10 @@ module Gandhi
       end
       @label_var = TkVariable.new
       label['textvariable'] = @label_var
+      root.bind('Left', proc { p 'LEFT'})
+      root.bind('Right', proc { p 'RIGHT'})
+      root.bind('Up', proc { p 'UP'})
+      root.bind('Down', proc { p 'DOWN'})
     end
 
     def run
