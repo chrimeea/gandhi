@@ -47,6 +47,7 @@ module Gandhi
   class QuadShape < Shape
     attr_reader :top_left, :bottom_right
 
+    #top_left inside, bottom_right outside
     def initialize top_left, bottom_right
       @top_left = top_left
       @bottom_right = bottom_right

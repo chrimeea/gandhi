@@ -13,7 +13,7 @@ module Gandhi
 	Point.new(tile.tex_map.top_left.x * @width, tile.tex_map.top_left.y * @height),
 	Point.new(tile.tex_map.bottom_right.x * @width, tile.tex_map.bottom_right.y * @height)
       )
-      (tile.height.to_i + 1).times { |i| screen[i + tile.top_left.y][tile.top_left.x..tile.bottom_right.x] = @data[i + quad.top_left.y][quad.top_left.x..quad.bottom_right.x] }
+      tile.height.to_i.times { |i| screen[i + tile.top_left.y][tile.top_left.x..tile.bottom_right.x] = @data[i + quad.top_left.y][quad.top_left.x..quad.bottom_right.x] }
     end
   end
   
@@ -32,16 +32,17 @@ module Gandhi
     end
 
     def render_tiles
-      tiles = @map_tree.shapes QuadShape.new(Point.new(0, 0), Point.new(191, 191))
+      tiles = @map_tree.shapes QuadShape.new(Point.new(0, 0), Point.new(@width, @height))
       tiles.each { |tile| @asset[tile.ttype].render(tile, @screen) }
     end
     
     def generate_map
-      area_quad = QuadShape.new(Point.new(0, 0), Point.new(@width - 1, @height - 1))
+      area_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height))
       @map_tree = QuadTree.new(area_quad, 3)
+      #25, 3
       x = rand(@width - 3)
       y = rand(@height - 3)
-      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 2, y + 2)), QuadTextureMapping.new, 1)
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 3, y + 3)), QuadTextureMapping.new, 1)
       @map_tree.insert tile
     end
     
