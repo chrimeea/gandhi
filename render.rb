@@ -9,13 +9,14 @@ module Gandhi
     end
 
     def render tile, screen
-      quad = QuadShape.new(
+      q = QuadShape.new(
 	Point.new(tile.tex_map.top_left.x * @width, tile.tex_map.top_left.y * @height),
 	Point.new(tile.tex_map.bottom_right.x * @width, tile.tex_map.bottom_right.y * @height)
-      )
-      tile.height.round.times do |i|
-        screen[i + tile.top_left.y.round][tile.top_left.x.round..tile.bottom_right.x.round] \
-        = @data[i + quad.top_left.y.round][quad.top_left.x.round..quad.bottom_right.x.round]
+      ).to_raster
+      t = tile.to_raster
+      t.height.to_i.times do |i|
+        screen[i + t.top_left.y][t.top_left.x..t.bottom_right.x] \
+        = @data[i + q.top_left.y][q.top_left.x..q.bottom_right.x]
       end
     end
   end

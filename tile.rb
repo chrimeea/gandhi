@@ -13,7 +13,7 @@ module Gandhi
     def translate x, y
       Point.new @x + x, @y + y
     end
-
+    
     def eql? other
       x == other.x && y == other.y
     end
@@ -27,8 +27,16 @@ module Gandhi
     end
   end
 
+  class RasterPoint < Point
+    def initialize point
+      @x = point.x.round.to_i
+      @y = point.y.round.to_i
+      freeze
+    end
+  end
+
   class Shape
-    attr_reader :vertexes, :center
+    attr_reader :vertexes
 
     def initialize vertexes
       @vertexes = vertexes
@@ -41,6 +49,14 @@ module Gandhi
 
     def hash
       @vertexes.hash
+    end
+
+    def translate x, y
+      Shape.new(@vertexes.map { |v| v.translate x, y })
+    end
+
+    def to_raster
+      Shape.new(@vertexes.map { |v| RasterPoint.new v })
     end
   end
 
@@ -60,6 +76,14 @@ module Gandhi
 
     def to_s
       "Quad(#{@top_left}, #{@bottom_right})"
+    end
+
+    def translate
+      QuadShape.new(@top_left.translate(x, y), @bottom_right.translate(x, y))
+    end
+
+    def to_raster
+      QuadShape.new(RasterPoint.new(@top_left), RasterPoint.new(@bottom_right))
     end
 
     def center
