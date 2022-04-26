@@ -66,19 +66,22 @@ module Gandhi
     def initialize top_left, bottom_right
       @top_left = top_left
       @bottom_right = bottom_right
-      super [
-	Point.new(bottom_right.x, top_left.y),
-	top_left,
-	Point.new(top_left.x, bottom_right.y),
-	bottom_right
-      ]
+      freeze
     end
 
     def to_s
       "Quad(#{@top_left}, #{@bottom_right})"
     end
 
-    def translate
+    def eql? other
+      top_left.eql?(other.top_left) && bottom_right.eql?(other.bottom_right)
+    end
+
+    def hash
+      [top_left, bottom_right].hash
+    end
+
+    def translate x, y
       QuadShape.new(@top_left.translate(x, y), @bottom_right.translate(x, y))
     end
 

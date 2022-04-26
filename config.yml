@@ -5,3 +5,6 @@ window:
 font:
   face: courier
   size: 10
+memory:
+  width: 96
+  height: 96

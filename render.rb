@@ -24,14 +24,15 @@ module Gandhi
   class UserInterface
     def initialize
       config = YAML.load_file('config.yml')
-      @height = config['window']['height']
-      @width = config['window']['width']
+      @height = config['memory']['height']
+      @width = config['memory']['width']
       load_assets
       generate_map
       @screen = Array.new(@height) { String.new(' ' * @width) }
+      @viewport = QuadShape.new(Point.new(0, 0), Point.new(config['window']['width'], config['window']['height'])).to_raster
       main_window config
       render_tiles
-      timer = TkAfter.new(1000, -1, proc { play })
+      timer = TkAfter.new(100, -1, proc { play })
       timer.start
     end
 
@@ -43,14 +44,18 @@ module Gandhi
     def generate_map
       area_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height))
       @map_tree = QuadTree.new(area_quad, 3)
-      x = rand(@width - 4)
-      y = rand(@height - 3)
+      x = 0 #rand(@width - 4)
+      y = 0 #rand(@height - 3)
       tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
       @map_tree.insert tile
     end
     
     def play
-      @label_var.value = @screen.join("\n")
+      s = []
+      @viewport.height.times do |i|
+        s[i] = @screen[i + @viewport.top_left.y][@viewport.top_left.x..@viewport.bottom_right.x]
+      end
+      @label_var.value = s.join("\n")
     end
     
     def load_assets
@@ -73,10 +78,10 @@ module Gandhi
       end
       @label_var = TkVariable.new
       label['textvariable'] = @label_var
-      root.bind('Left', proc { p 'LEFT'})
-      root.bind('Right', proc { p 'RIGHT'})
-      root.bind('Up', proc { p 'UP'})
-      root.bind('Down', proc { p 'DOWN'})
+      root.bind('Left', proc { @viewport = @viewport.translate(-1, 0).to_raster })
+      root.bind('Right', proc { @viewport = @viewport.translate(1, 0).to_raster })
+      root.bind('Up', proc { @viewport = @viewport.translate(0, -1).to_raster })
+      root.bind('Down', proc { @viewport = @viewport.translate(0, 1).to_raster })
     end
 
     def run
