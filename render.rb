@@ -78,10 +78,10 @@ module Gandhi
       end
       @label_var = TkVariable.new
       label['textvariable'] = @label_var
-      root.bind('Left', proc { @viewport = @viewport.translate(-1, 0).to_raster })
-      root.bind('Right', proc { @viewport = @viewport.translate(1, 0).to_raster })
-      root.bind('Up', proc { @viewport = @viewport.translate(0, -1).to_raster })
-      root.bind('Down', proc { @viewport = @viewport.translate(0, 1).to_raster })
+      root.bind('Left', proc { @viewport = @viewport.translate(-1, 0).to_raster if @viewport.top_left.x > 0 })
+      root.bind('Right', proc { @viewport = @viewport.translate(1, 0).to_raster if @viewport.bottom_right.x < @screen[0].size })
+      root.bind('Up', proc { @viewport = @viewport.translate(0, -1).to_raster if @viewport.top_left.y > 0 })
+      root.bind('Down', proc { @viewport = @viewport.translate(0, 1).to_raster if @viewport.bottom_right.y < @screen.size })
     end
 
     def run
