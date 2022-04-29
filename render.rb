@@ -8,12 +8,12 @@ module Gandhi
       @height = @data.size
     end
 
-    def render tile, screen
+    def render tile, screen, screen_top_left
       q = QuadShape.new(
 	Point.new(tile.tex_map.top_left.x * @width, tile.tex_map.top_left.y * @height),
 	Point.new(tile.tex_map.bottom_right.x * @width, tile.tex_map.bottom_right.y * @height)
       ).to_raster
-      t = tile.to_raster
+      t = tile.to_raster.translate -screen_top_left.x, -screen_top_left.y
       t.height.to_i.times do |i|
         screen[i + t.top_left.y][t.top_left.x..t.bottom_right.x] \
         = @data[i + q.top_left.y][q.top_left.x..q.bottom_right.x]
@@ -29,6 +29,7 @@ module Gandhi
       load_assets
       generate_map
       @screen = Array.new(@height) { String.new(' ' * @width) }
+      @screen_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height)).to_raster
       @viewport = QuadShape.new(Point.new(0, 0), Point.new(config['window']['width'], config['window']['height'])).to_raster
       main_window config
       render_tiles
@@ -37,9 +38,9 @@ module Gandhi
     end
 
     def render_tiles
-      tiles = @map_tree.shapes QuadShape.new(Point.new(0, 0), Point.new(@width, @height))
-      tiles.each { |tile| @asset[tile.ttype].render(tile, @screen) }
-    end
+      tiles = @map_tree.shapes @screen_quad
+      tiles.each { |tile| @asset[tile.ttype].render(tile, @screen, @screen_quad.top_left) }
+   end
     
     def generate_map
       area_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height))
