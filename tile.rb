@@ -28,10 +28,14 @@ module Gandhi
   end
 
   class RasterPoint < Point
-    def initialize point
-      @x = point.x.round.to_i
-      @y = point.y.round.to_i
+    def initialize x, y
+      @x = x.round.to_i
+      @y = y.round.to_i
       freeze
+    end
+
+    def translate x, y
+      RasterPoint.new @x + x, @y + y
     end
   end
 
@@ -56,7 +60,7 @@ module Gandhi
     end
 
     def to_raster
-      Shape.new(@vertexes.map { |v| RasterPoint.new v })
+      Shape.new(@vertexes.map { |v| RasterPoint.new v.x, v.y })
     end
   end
 
@@ -86,7 +90,7 @@ module Gandhi
     end
 
     def to_raster
-      QuadShape.new(RasterPoint.new(@top_left), RasterPoint.new(@bottom_right))
+      QuadShape.new(RasterPoint.new(@top_left.x, @top_left.y), RasterPoint.new(@bottom_right.x, @bottom_right.y))
     end
 
     def center
