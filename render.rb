@@ -10,8 +10,8 @@ module Gandhi
 
     def render tile, screen, screen_top_left
       q = QuadShape.new(
-	Point.new(tile.tex_map.top_left.x * @width, tile.tex_map.top_left.y * @height),
-	Point.new(tile.tex_map.bottom_right.x * @width, tile.tex_map.bottom_right.y * @height)
+        Point.new(tile.tex_map.top_left.x * @width, tile.tex_map.top_left.y * @height),
+        Point.new(tile.tex_map.bottom_right.x * @width, tile.tex_map.bottom_right.y * @height)
       ).to_raster
       t = tile.to_raster.translate -screen_top_left.x, -screen_top_left.y
       t.height.times do |i|
@@ -31,7 +31,9 @@ module Gandhi
       generate_map
       @screen = Array.new(@height) { String.new(' ' * @width) }
       @screen_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height)).to_raster
-      @viewport = QuadShape.new(Point.new(0, 0), Point.new(config['window']['width'], config['window']['height'])).to_raster
+      x = 23
+      y = 23
+      @viewport = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(config['window']['width'] + x, config['window']['height'] + y)).to_raster
       main_window config
       render_tiles
       timer = TkAfter.new(100, -1, proc { play })
@@ -82,8 +84,8 @@ module Gandhi
     def generate_map
       area_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height))
       @map_tree = QuadTree.new(area_quad, 3)
-      x = 0 #rand(@width - 4)
-      y = 0 #rand(@height - 3)
+      x = 23
+      y = 23
       tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
       @map_tree.insert tile
     end
@@ -91,7 +93,7 @@ module Gandhi
     def play
       s = []
       @viewport.height.times do |i|
-        s[i] = @screen[i + @viewport.top_left.y][@viewport.top_left.x..@viewport.bottom_right.x]
+        s[i] = @screen[i + @viewport.top_left.y - @screen_quad.top_left.y][(@viewport.top_left.x - @screen_quad.top_left.x)..(@viewport.bottom_right.x - @screen_quad.top_left.x)]
       end
       @label_var.value = s.join("\n")
     end
