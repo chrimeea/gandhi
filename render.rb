@@ -26,14 +26,19 @@ module Gandhi
       config = YAML.load_file('config.yml')
       @height = config['memory']['height']
       @width = config['memory']['width']
-      @buffer = config['memory']['buffer']
+      viewport_width = config['window']['width']
+      viewport_height = config['window']['height']
+      @map_width = config['map']['width']
+      @map_height = config['map']['height']
+      @buffer_width = (@width - viewport_width) / 2
+      @buffer_height = (@height - viewport_height) / 2
       load_assets
       generate_map
       @screen = Array.new(@height) { String.new(' ' * @width) }
       @screen_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height)).to_raster
       x = 23
       y = 23
-      @viewport = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(config['window']['width'] + x, config['window']['height'] + y)).to_raster
+      @viewport = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(viewport_width + x, viewport_height + y)).to_raster
       main_window config
       render_tiles
       timer = TkAfter.new(100, -1, proc { play })
@@ -46,37 +51,41 @@ module Gandhi
     end
 
     def load_screen_left
-      if @screen_quad.top_left.x >= @buffer
+      if @screen_quad.top_left.x >= @buffer_width
+        p 'LOAD LEFT'
         @screen_quad.height.times do |i|
-          @screen[i][...-@buffer] = @screen[i][@buffer..]
+          @screen[i][...-@buffer_width] = @screen[i][@buffer_width..]
         end
-        @screen_quad = @screen_quad.translate -@buffer, 0
+        @screen_quad = @screen_quad.translate -@buffer_width, 0
         render_tiles
       end
     end
 
     def load_screen_right
-      if @screen_quad.bottom_right.x <= @width - @buffer
+      if @screen_quad.bottom_right.x <= @map_width - @buffer_width
+        p 'LOAD RIGHT'
         @screen_quad.height.times do |i|
-          @screen[i][@buffer..] = @screen[i][...-@buffer]
+          @screen[i][@buffer_width..] = @screen[i][...-@buffer_width]
         end
-        @screen_quad = @screen_quad.translate -@buffer, 0
+        @screen_quad = @screen_quad.translate @buffer_width, 0
         render_tiles
       end
     end
 
     def load_screen_up
-      if @screen_quad.top_left.y >= @buffer
-        @screen[buffer..] = @screen[...-buffer]
-        @screen_quad = @screen_quad.translate 0, -@buffer
+      if @screen_quad.top_left.y >= @buffer_height
+        p 'LOAD UP'
+        @screen[buffer_height..] = @screen[...-buffer_height]
+        @screen_quad = @screen_quad.translate 0, -@buffer_height
         render_tiles
       end
     end
 
     def load_screen_down
-      if @screen_quad.bottom_right.y <= @height - @buffer
-        @screen[...-buffer] = @screen[buffer..]
-        @screen_quad = @screen_quad.translate 0, @buffer
+      if @screen_quad.bottom_right.y <= @map_height - @buffer_height
+        p 'LOAD DOWN'
+        @screen[...-buffer_height] = @screen[buffer_height..]
+        @screen_quad = @screen_quad.translate 0, @buffer_height
         render_tiles
       end
     end
@@ -86,6 +95,15 @@ module Gandhi
       @map_tree = QuadTree.new(area_quad, 3)
       x = 23
       y = 23
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
+      @map_tree.insert tile
+      x = 23 + 48 - 4
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
+      @map_tree.insert tile
+      y = 23 + 48 - 3
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
+      @map_tree.insert tile
+      x = 23
       tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
       @map_tree.insert tile
     end
@@ -104,28 +122,28 @@ module Gandhi
     end
 
     def move_viewport_left
-      if @viewport.top_left.x == 0
+      if @viewport.top_left.x - @screen_quad.top_left.x <= 0
         load_screen_left
       end
       @viewport = @viewport.translate(-1, 0).to_raster if @viewport.top_left.x > 0
     end
 
     def move_viewport_right
-      if @viewport.bottom_right.x == @width
+      if @screen_quad.bottom_right.x - @viewport.bottom_right.x <= 0
         load_screen_right
       end
       @viewport = @viewport.translate(1, 0).to_raster if @viewport.bottom_right.x < @screen[0].size
     end
     
     def move_viewport_up
-      if @viewport.top_left.y == 0
+      if @viewport.top_left.y - @screen_quad.top_left.y <= 0
         load_screen_up
       end
       @viewport = @viewport.translate(0, -1).to_raster if @viewport.top_left.y > 0
     end
 
     def move_viewport_down
-      if @viewport.bottom_right.y == @height
+      if @screen_quad.bottom_right.y - @viewport.bottom_right.y <= 0
         load_screen_down
       end
       @viewport = @viewport.translate(0, 1).to_raster if @viewport.bottom_right.y < @screen.size
@@ -136,7 +154,7 @@ module Gandhi
       root.title = config['window']['title']
       label = TkLabel.new(root) do
         textvariable
-        font TkFont.new("#{config['font']['face']} #{config['font']['size']}")
+        font TkFont.new("#{config['window']['font']['face']} #{config['window']['font']['size']}")
         foreground  'black'
         height config['window']['height']
         width config['window']['width']

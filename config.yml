@@ -2,10 +2,12 @@ window:
   width: 48
   height: 48
   title: Gandhi
-font:
-  face: courier
-  size: 10
+  font:
+    face: courier
+    size: 10
 memory:
   width: 96
   height: 96
-  buffer: 24
+map:
+  width: 192
+  height: 192
