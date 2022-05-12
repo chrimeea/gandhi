@@ -15,8 +15,8 @@ module Gandhi
       ).to_raster
       t = tile.to_raster.translate -screen_top_left.x, -screen_top_left.y
       t.height.times do |i|
-        screen[i + t.top_left.y][t.top_left.x..t.bottom_right.x] \
-        = @data[i + q.top_left.y][q.top_left.x..q.bottom_right.x]
+        screen[i + t.top_left.y][t.top_left.x...t.bottom_right.x] \
+        = @data[i + q.top_left.y][q.top_left.x...q.bottom_right.x]
       end
     end
   end
@@ -51,41 +51,45 @@ module Gandhi
     end
 
     def load_screen_left
-      if @screen_quad.top_left.x >= @buffer_width
-        p 'LOAD LEFT'
+      width = [@screen_quad.top_left.x, @buffer_width].min
+      if width > 0
+        p "LOAD LEFT #{width}"
         @screen_quad.height.times do |i|
-          @screen[i][...-@buffer_width] = @screen[i][@buffer_width..]
+          @screen[i][...-width] = @screen[i][width..]
         end
-        @screen_quad = @screen_quad.translate -@buffer_width, 0
+        @screen_quad = @screen_quad.translate -width, 0
         render_tiles
       end
     end
 
     def load_screen_right
-      if @screen_quad.bottom_right.x <= @map_width - @buffer_width
-        p 'LOAD RIGHT'
+      width = [@map_width - @screen_quad.bottom_right.x, @buffer_width].min
+      if width > 0
+        p "LOAD RIGHT #{width}"
         @screen_quad.height.times do |i|
-          @screen[i][@buffer_width..] = @screen[i][...-@buffer_width]
+          @screen[i][width..] = @screen[i][...-width]
         end
-        @screen_quad = @screen_quad.translate @buffer_width, 0
+        @screen_quad = @screen_quad.translate width, 0
         render_tiles
       end
     end
 
     def load_screen_up
-      if @screen_quad.top_left.y >= @buffer_height
-        p 'LOAD UP'
-        @screen[buffer_height..] = @screen[...-buffer_height]
-        @screen_quad = @screen_quad.translate 0, -@buffer_height
+      height = [@screen_quad.top_left.y, @buffer_height].min
+      if height > 0
+        p "LOAD UP #{height}"
+        @screen[height..] = @screen[...-height]
+        @screen_quad = @screen_quad.translate 0, -height
         render_tiles
       end
     end
 
     def load_screen_down
-      if @screen_quad.bottom_right.y <= @map_height - @buffer_height
-        p 'LOAD DOWN'
-        @screen[...-buffer_height] = @screen[buffer_height..]
-        @screen_quad = @screen_quad.translate 0, @buffer_height
+      height = [@map_height - @screen_quad.bottom_right.y, @buffer_height].min
+      if height > 0
+        p "LOAD DOWN #{height}"
+        @screen[...-height] = @screen[height..]
+        @screen_quad = @screen_quad.translate 0, height
         render_tiles
       end
     end
@@ -122,31 +126,39 @@ module Gandhi
     end
 
     def move_viewport_left
-      if @viewport.top_left.x - @screen_quad.top_left.x <= 0
-        load_screen_left
+      if @viewport.top_left.x > 0
+        if @viewport.top_left.x - @screen_quad.top_left.x <= 0
+          load_screen_left
+        end
+        @viewport = @viewport.translate(-1, 0).to_raster
       end
-      @viewport = @viewport.translate(-1, 0).to_raster if @viewport.top_left.x > 0
     end
 
     def move_viewport_right
-      if @screen_quad.bottom_right.x - @viewport.bottom_right.x <= 0
-        load_screen_right
+      if @viewport.bottom_right.x < @map_width
+        if @screen_quad.bottom_right.x - @viewport.bottom_right.x <= 0
+          load_screen_right
+        end
+        @viewport = @viewport.translate(1, 0).to_raster
       end
-      @viewport = @viewport.translate(1, 0).to_raster if @viewport.bottom_right.x < @screen[0].size
     end
     
     def move_viewport_up
-      if @viewport.top_left.y - @screen_quad.top_left.y <= 0
-        load_screen_up
+      if @viewport.top_left.y > 0
+        if @viewport.top_left.y - @screen_quad.top_left.y <= 0
+          load_screen_up
+        end
+        @viewport = @viewport.translate(0, -1).to_raster
       end
-      @viewport = @viewport.translate(0, -1).to_raster if @viewport.top_left.y > 0
     end
 
     def move_viewport_down
-      if @screen_quad.bottom_right.y - @viewport.bottom_right.y <= 0
-        load_screen_down
+      if @viewport.bottom_right.y < @map_height
+        if @screen_quad.bottom_right.y - @viewport.bottom_right.y <= 0
+          load_screen_down
+        end
+        @viewport = @viewport.translate(0, 1).to_raster
       end
-      @viewport = @viewport.translate(0, 1).to_raster if @viewport.bottom_right.y < @screen.size
     end
 
     def main_window config
