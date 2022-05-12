@@ -56,6 +56,7 @@ module Gandhi
         p "LOAD LEFT #{width}"
         @screen_quad.height.times do |i|
           @screen[i][width..] = @screen[i][...-width]
+          @screen[i][...width] = ' ' * width
         end
         @screen_quad = @screen_quad.translate -width, 0
         render_tiles
@@ -68,6 +69,7 @@ module Gandhi
         p "LOAD RIGHT #{width}"
         @screen_quad.height.times do |i|
           @screen[i][...-width] = @screen[i][width..]
+          @screen[i][-width..] = ' ' * width
         end
         @screen_quad = @screen_quad.translate width, 0
         render_tiles
@@ -79,6 +81,7 @@ module Gandhi
       if height > 0
         p "LOAD UP #{height}"
         @screen[height..] = @screen[...-height]
+        @screen[...height] = Array.new(height) { String.new(' ' * @width) }
         @screen_quad = @screen_quad.translate 0, -height
         render_tiles
       end
@@ -89,6 +92,7 @@ module Gandhi
       if height > 0
         p "LOAD DOWN #{height}"
         @screen[...-height] = @screen[height..]
+        @screen[-height..] = Array.new(height) { String.new(' ' * @width) }
         @screen_quad = @screen_quad.translate 0, height
         render_tiles
       end
