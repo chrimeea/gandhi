@@ -55,7 +55,7 @@ module Gandhi
       if width > 0
         p "LOAD LEFT #{width}"
         @screen_quad.height.times do |i|
-          @screen[i][...-width] = @screen[i][width..]
+          @screen[i][width..] = @screen[i][...-width]
         end
         @screen_quad = @screen_quad.translate -width, 0
         render_tiles
@@ -67,7 +67,7 @@ module Gandhi
       if width > 0
         p "LOAD RIGHT #{width}"
         @screen_quad.height.times do |i|
-          @screen[i][width..] = @screen[i][...-width]
+          @screen[i][...-width] = @screen[i][width..]
         end
         @screen_quad = @screen_quad.translate width, 0
         render_tiles
