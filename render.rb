@@ -40,14 +40,14 @@ module Gandhi
       y = 23
       @viewport = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(viewport_width + x, viewport_height + y)).to_raster
       main_window config
-      render_tiles
+      render_tiles @screen_quad
       timer = TkAfter.new(100, -1, proc { play })
       timer.start
     end
 
-    def render_tiles
-      tiles = @map_tree.shapes @screen_quad
-      tiles.each { |tile| @asset[tile.ttype].render(tile, @screen, @screen_quad.top_left) }
+    def render_tiles quad
+      tiles = @map_tree.shapes quad
+      tiles.each { |tile| @asset[tile.ttype].render(tile, @screen, quad.top_left) }
     end
 
     def load_screen_left
@@ -59,7 +59,7 @@ module Gandhi
           @screen[i][...width] = ' ' * width
         end
         @screen_quad = @screen_quad.translate -width, 0
-        render_tiles
+        render_tiles QuadShape.new(@screen_quad.top_left, Point.new(@screen_quad.top_left.x + width, @screen_quad.bottom_right.y))
       end
     end
 
@@ -72,7 +72,7 @@ module Gandhi
           @screen[i][-width..] = ' ' * width
         end
         @screen_quad = @screen_quad.translate width, 0
-        render_tiles
+        render_tiles QuadShape.new(Point.new(@screen_quad.bottom_right.x - width, @screen_quad.top_left.y), @screen_quad.bottom_right)
       end
     end
 
@@ -83,7 +83,7 @@ module Gandhi
         @screen[height..] = @screen[...-height]
         @screen[...height] = Array.new(height) { String.new(' ' * @width) }
         @screen_quad = @screen_quad.translate 0, -height
-        render_tiles
+        render_tiles QuadShape.new(@screen_quad.top_left, Point.new(@screen_quad.bottom_right.x, @screen_quad.top_left.y + height))
       end
     end
 
@@ -94,7 +94,7 @@ module Gandhi
         @screen[...-height] = @screen[height..]
         @screen[-height..] = Array.new(height) { String.new(' ' * @width) }
         @screen_quad = @screen_quad.translate 0, height
-        render_tiles
+        render_tiles QuadShape.new(Point.new(@screen_quad.top_left.x, @screen_quad.bottom_right.y - height), @screen_quad.bottom_right)
       end
     end
 
