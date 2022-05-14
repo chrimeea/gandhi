@@ -24,12 +24,11 @@ module Gandhi
   class UserInterface
     def initialize
       config = YAML.load_file('config.yml')
-      @height = config['memory']['height']
-      @width = config['memory']['width']
+      @height = config['map']['memory']['height']
+      @width = config['map']['memory']['width']
       viewport_width = config['window']['width']
       viewport_height = config['window']['height']
-      @map_width = config['map']['width']
-      @map_height = config['map']['height']
+      @map_quad = QuadShape.new(Point.new(0, 0), Point.new(config['map']['width'], config['map']['height'])).to_raster
       @buffer_width = (@width - viewport_width) / 2
       @buffer_height = (@height - viewport_height) / 2
       load_assets
@@ -51,7 +50,7 @@ module Gandhi
     end
 
     def load_screen_left
-      width = [@screen_quad.top_left.x, @buffer_width].min
+      width = [@screen_quad.top_left.x - @map_quad.top_left.x, @buffer_width].min
       if width > 0
         p "LOAD LEFT #{width}"
         @screen_quad.height.times do |i|
@@ -64,7 +63,7 @@ module Gandhi
     end
 
     def load_screen_right
-      width = [@map_width - @screen_quad.bottom_right.x, @buffer_width].min
+      width = [@map_quad.bottom_right.x - @screen_quad.bottom_right.x, @buffer_width].min
       if width > 0
         p "LOAD RIGHT #{width}"
         @screen_quad.height.times do |i|
@@ -77,7 +76,7 @@ module Gandhi
     end
 
     def load_screen_up
-      height = [@screen_quad.top_left.y, @buffer_height].min
+      height = [@screen_quad.top_left.y - @map_quad.top_left.y, @buffer_height].min
       if height > 0
         p "LOAD UP #{height}"
         @screen[height..] = @screen[...-height]
@@ -88,7 +87,7 @@ module Gandhi
     end
 
     def load_screen_down
-      height = [@map_height - @screen_quad.bottom_right.y, @buffer_height].min
+      height = [@map_quad.bottom_right.y - @screen_quad.bottom_right.y, @buffer_height].min
       if height > 0
         p "LOAD DOWN #{height}"
         @screen[...-height] = @screen[height..]
@@ -130,7 +129,7 @@ module Gandhi
     end
 
     def move_viewport_left
-      if @viewport.top_left.x > 0
+      if @viewport.top_left.x > @map_quad.top_left.x
         if @viewport.top_left.x - @screen_quad.top_left.x <= 0
           load_screen_left
         end
@@ -139,7 +138,7 @@ module Gandhi
     end
 
     def move_viewport_right
-      if @viewport.bottom_right.x < @map_width
+      if @viewport.bottom_right.x < @map_quad.bottom_right.x
         if @screen_quad.bottom_right.x - @viewport.bottom_right.x <= 0
           load_screen_right
         end
@@ -148,7 +147,7 @@ module Gandhi
     end
     
     def move_viewport_up
-      if @viewport.top_left.y > 0
+      if @viewport.top_left.y > @map_quad.top_left.y
         if @viewport.top_left.y - @screen_quad.top_left.y <= 0
           load_screen_up
         end
@@ -157,7 +156,7 @@ module Gandhi
     end
 
     def move_viewport_down
-      if @viewport.bottom_right.y < @map_height
+      if @viewport.bottom_right.y < @map_quad.bottom_right.y
         if @screen_quad.bottom_right.y - @viewport.bottom_right.y <= 0
           load_screen_down
         end

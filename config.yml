@@ -5,9 +5,9 @@ window:
   font:
     face: courier
     size: 10
-memory:
-  width: 96
-  height: 96
 map:
   width: 192
   height: 192
+  memory:
+    width: 96
+    height: 96
