@@ -24,15 +24,13 @@ module Gandhi
   class UserInterface
     def initialize
       config = YAML.load_file('config.yml')
-      @height = config['map']['memory']['height']
-      @width = config['map']['memory']['width']
       @map_quad = QuadShape.new(Point.new(0, 0), Point.new(config['map']['width'], config['map']['height'])).to_raster
       @buffer_width = config['map']['buffer']['width']
       @buffer_height = config['map']['buffer']['height']
       load_assets
       generate_map
-      @screen = Array.new(@height) { String.new(' ' * @width) }
-      @screen_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height)).to_raster
+      @screen_quad = QuadShape.new(Point.new(0, 0), Point.new(config['map']['memory']['width'], config['map']['memory']['height'])).to_raster
+      @screen = Array.new(@screen_quad.height) { String.new(' ' * @screen_quad.width) }
       x = 23
       y = 23
       @viewport = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(config['window']['width'] + x, config['window']['height'] + y)).to_raster
@@ -78,7 +76,7 @@ module Gandhi
       if height > 0
         p "LOAD UP #{height}"
         @screen[height..] = @screen[...-height]
-        @screen[...height] = Array.new(height) { String.new(' ' * @width) }
+        @screen[...height] = Array.new(height) { String.new(' ' * @screen_quad.width) }
         @screen_quad = @screen_quad.translate 0, -height
         render_tiles QuadShape.new(@screen_quad.top_left, Point.new(@screen_quad.bottom_right.x, @screen_quad.top_left.y + height))
       end
@@ -89,7 +87,7 @@ module Gandhi
       if height > 0
         p "LOAD DOWN #{height}"
         @screen[...-height] = @screen[height..]
-        @screen[-height..] = Array.new(height) { String.new(' ' * @width) }
+        @screen[-height..] = Array.new(height) { String.new(' ' * @screen_quad.width) }
         @screen_quad = @screen_quad.translate 0, height
         render_tiles QuadShape.new(Point.new(@screen_quad.top_left.x, @screen_quad.bottom_right.y - height), @screen_quad.bottom_right)
       end
