@@ -11,3 +11,6 @@ map:
   memory:
     width: 96
     height: 96
+  buffer:
+    width: 24
+    height: 24

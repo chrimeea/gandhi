@@ -26,18 +26,16 @@ module Gandhi
       config = YAML.load_file('config.yml')
       @height = config['map']['memory']['height']
       @width = config['map']['memory']['width']
-      viewport_width = config['window']['width']
-      viewport_height = config['window']['height']
       @map_quad = QuadShape.new(Point.new(0, 0), Point.new(config['map']['width'], config['map']['height'])).to_raster
-      @buffer_width = (@width - viewport_width) / 2
-      @buffer_height = (@height - viewport_height) / 2
+      @buffer_width = config['map']['buffer']['width']
+      @buffer_height = config['map']['buffer']['height']
       load_assets
       generate_map
       @screen = Array.new(@height) { String.new(' ' * @width) }
       @screen_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height)).to_raster
       x = 23
       y = 23
-      @viewport = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(viewport_width + x, viewport_height + y)).to_raster
+      @viewport = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(config['window']['width'] + x, config['window']['height'] + y)).to_raster
       main_window config
       render_tiles @screen_quad
       timer = TkAfter.new(100, -1, proc { play })
