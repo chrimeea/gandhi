@@ -96,8 +96,7 @@ module Gandhi
     end
 
     def generate_map
-      area_quad = QuadShape.new(Point.new(0, 0), Point.new(@width, @height))
-      @map_tree = QuadTree.new(area_quad, 3)
+      @map_tree = QuadTree.new(@map_quad, 3)
       x = 23
       y = 23
       tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
