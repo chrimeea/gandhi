@@ -3,7 +3,7 @@
 require 'set'
 require 'tk'
 require 'yaml'
-require_relative 'map'
+require_relative 'tree'
 require_relative 'tile'
 require_relative 'render'
 
