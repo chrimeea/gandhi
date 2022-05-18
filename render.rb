@@ -89,14 +89,43 @@ module Gandhi
     end
   end
 
+  class Map
+    attr_reader :quad
+
+    def initialize quad
+      @quad = quad.to_raster
+      generate_map
+    end
+
+    def generate_map
+      @tree = QuadTree.new(@quad, 3)
+      x = 23
+      y = 23
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
+      @tree.insert tile
+      x = 23 + 48 - 4
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
+      @tree.insert tile
+      y = 23 + 48 - 3
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
+      @tree.insert tile
+      x = 23
+      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
+      @tree.insert tile
+    end
+
+    def shapes quad
+      @tree.shapes quad
+    end
+  end
+
   class UserInterface
     def initialize
       config = YAML.load_file('config.yml')
-      @map_quad = QuadShape.new(Point.new(0, 0), Point.new(config['map']['width'], config['map']['height'])).to_raster
+      @map = Map.new QuadShape.new(Point.new(0, 0), Point.new(config['map']['width'], config['map']['height']))
       @buffer_width = config['map']['buffer']['width']
       @buffer_height = config['map']['buffer']['height']
       load_assets
-      generate_map
       @screen = Screen.new QuadShape.new(Point.new(0, 0), Point.new(config['map']['memory']['width'], config['map']['memory']['height']))
       x = 23
       y = 23
@@ -108,26 +137,9 @@ module Gandhi
     end
 
     def render_tiles quad
-      @map_tree.shapes(quad).each do |tile|
+      @map.shapes(quad).each do |tile|
         @asset[tile.ttype].render(tile, @screen, quad.top_left)
       end
-    end
-
-    def generate_map
-      @map_tree = QuadTree.new(@map_quad, 3)
-      x = 23
-      y = 23
-      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
-      @map_tree.insert tile
-      x = 23 + 48 - 4
-      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
-      @map_tree.insert tile
-      y = 23 + 48 - 3
-      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
-      @map_tree.insert tile
-      x = 23
-      tile = QuadTile.new(QuadShape.new(Point.new(x, y), Point.new(x + 4, y + 3)), QuadTextureMapping.new, 1)
-      @map_tree.insert tile
     end
 
     def play
@@ -140,36 +152,36 @@ module Gandhi
     end
 
     def move_viewport_left
-      if @viewport_quad.top_left.x > @map_quad.top_left.x
+      if @viewport_quad.top_left.x > @map.quad.top_left.x
         if @viewport_quad.top_left.x - @screen.quad.top_left.x <= 0
-          render_tiles @screen.move_left([@screen.quad.top_left.x - @map_quad.top_left.x, @buffer_width].min)
+          render_tiles @screen.move_left([@screen.quad.top_left.x - @map.quad.top_left.x, @buffer_width].min)
         end
         @viewport_quad = @viewport_quad.translate(-1, 0).to_raster
       end
     end
 
     def move_viewport_right
-      if @viewport_quad.bottom_right.x < @map_quad.bottom_right.x
+      if @viewport_quad.bottom_right.x < @map.quad.bottom_right.x
         if @screen.quad.bottom_right.x - @viewport_quad.bottom_right.x <= 0
-          render_tiles @screen.move_right([@map_quad.bottom_right.x - @screen.quad.bottom_right.x, @buffer_width].min)
+          render_tiles @screen.move_right([@map.quad.bottom_right.x - @screen.quad.bottom_right.x, @buffer_width].min)
         end
         @viewport_quad = @viewport_quad.translate(1, 0).to_raster
       end
     end
     
     def move_viewport_up
-      if @viewport_quad.top_left.y > @map_quad.top_left.y
+      if @viewport_quad.top_left.y > @map.quad.top_left.y
         if @viewport_quad.top_left.y - @screen.quad.top_left.y <= 0
-          render_tiles @screen.move_up([@screen.quad.top_left.y - @map_quad.top_left.y, @buffer_height].min)
+          render_tiles @screen.move_up([@screen.quad.top_left.y - @map.quad.top_left.y, @buffer_height].min)
         end
         @viewport_quad = @viewport_quad.translate(0, -1).to_raster
       end
     end
 
     def move_viewport_down
-      if @viewport_quad.bottom_right.y < @map_quad.bottom_right.y
+      if @viewport_quad.bottom_right.y < @map.quad.bottom_right.y
         if @screen.quad.bottom_right.y - @viewport_quad.bottom_right.y <= 0
-          render_tiles @screen.move_down([@map_quad.bottom_right.y - @screen.quad.bottom_right.y, @buffer_height].min)
+          render_tiles @screen.move_down([@map.quad.bottom_right.y - @screen.quad.bottom_right.y, @buffer_height].min)
         end
         @viewport_quad = @viewport_quad.translate(0, 1).to_raster
       end
