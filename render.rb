@@ -113,22 +113,6 @@ module Gandhi
       end
     end
 
-    def load_screen_left
-      render_tiles @screen.move_left([@screen.quad.top_left.x - @map_quad.top_left.x, @buffer_width].min)
-    end
-
-    def load_screen_right
-      render_tiles @screen.move_right([@map_quad.bottom_right.x - @screen.quad.bottom_right.x, @buffer_width].min)
-    end
-
-    def load_screen_up
-      render_tiles @screen.move_up([@screen.quad.top_left.y - @map_quad.top_left.y, @buffer_height].min)
-    end
-
-    def load_screen_down
-      render_tiles @screen.move_down([@map_quad.bottom_right.y - @screen.quad.bottom_right.y, @buffer_height].min)
-    end
-
     def generate_map
       @map_tree = QuadTree.new(@map_quad, 3)
       x = 23
@@ -158,7 +142,7 @@ module Gandhi
     def move_viewport_left
       if @viewport_quad.top_left.x > @map_quad.top_left.x
         if @viewport_quad.top_left.x - @screen.quad.top_left.x <= 0
-          load_screen_left
+          render_tiles @screen.move_left([@screen.quad.top_left.x - @map_quad.top_left.x, @buffer_width].min)
         end
         @viewport_quad = @viewport_quad.translate(-1, 0).to_raster
       end
@@ -167,7 +151,7 @@ module Gandhi
     def move_viewport_right
       if @viewport_quad.bottom_right.x < @map_quad.bottom_right.x
         if @screen.quad.bottom_right.x - @viewport_quad.bottom_right.x <= 0
-          load_screen_right
+          render_tiles @screen.move_right([@map_quad.bottom_right.x - @screen.quad.bottom_right.x, @buffer_width].min)
         end
         @viewport_quad = @viewport_quad.translate(1, 0).to_raster
       end
@@ -176,7 +160,7 @@ module Gandhi
     def move_viewport_up
       if @viewport_quad.top_left.y > @map_quad.top_left.y
         if @viewport_quad.top_left.y - @screen.quad.top_left.y <= 0
-          load_screen_up
+          render_tiles @screen.move_up([@screen.quad.top_left.y - @map_quad.top_left.y, @buffer_height].min)
         end
         @viewport_quad = @viewport_quad.translate(0, -1).to_raster
       end
@@ -185,7 +169,7 @@ module Gandhi
     def move_viewport_down
       if @viewport_quad.bottom_right.y < @map_quad.bottom_right.y
         if @screen.quad.bottom_right.y - @viewport_quad.bottom_right.y <= 0
-          load_screen_down
+          render_tiles @screen.move_down([@map_quad.bottom_right.y - @screen.quad.bottom_right.y, @buffer_height].min)
         end
         @viewport_quad = @viewport_quad.translate(0, 1).to_raster
       end
