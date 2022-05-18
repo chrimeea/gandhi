@@ -13,14 +13,82 @@ module Gandhi
         Point.new(tile.tex_map.top_left.x * @width, tile.tex_map.top_left.y * @height),
         Point.new(tile.tex_map.bottom_right.x * @width, tile.tex_map.bottom_right.y * @height)
       ).to_raster
-      t = tile.to_raster.translate -screen_top_left.x, -screen_top_left.y
+      t = tile.to_raster.translate(-screen_top_left.x, -screen_top_left.y)
       t.height.times do |i|
-        screen[i + t.top_left.y][t.top_left.x...t.bottom_right.x] \
-        = @data[i + q.top_left.y][q.top_left.x...q.bottom_right.x]
+        screen.render(
+          i + t.top_left.y,
+          t.top_left.x...t.bottom_right.x,
+          @data[i + q.top_left.y][q.top_left.x...q.bottom_right.x]
+        )
       end
     end
   end
   
+  class Screen
+    attr_reader :quad
+
+    def initialize quad
+      @quad = quad.to_raster
+      @screen = Array.new(quad.height) { String.new(' ' * quad.width) }
+    end
+
+    def render line, cols, data
+      @screen[line][cols] = data
+    end
+
+    def move_left width
+      if width > 0
+        p "LOAD LEFT #{width}"
+        @quad.height.times do |i|
+          @screen[i][width..] = @screen[i][...-width]
+          @screen[i][...width] = ' ' * width
+        end
+        @quad = @quad.translate -width, 0
+        QuadShape.new(@quad.top_left, Point.new(@quad.top_left.x + width, @quad.bottom_right.y))
+      end
+    end
+
+    def move_right width
+      if width > 0
+        p "LOAD RIGHT #{width}"
+        @quad.height.times do |i|
+          @screen[i][...-width] = @screen[i][width..]
+          @screen[i][-width..] = ' ' * width
+        end
+        @quad = @quad.translate width, 0
+        QuadShape.new(Point.new(@quad.bottom_right.x - width, @quad.top_left.y), @quad.bottom_right)
+      end
+    end
+
+    def move_up height
+      if height > 0
+        p "LOAD UP #{height}"
+        @screen[height..] = @screen[...-height]
+        @screen[...height] = Array.new(height) { String.new(' ' * @quad.width) }
+        @quad = @quad.translate 0, -height
+        QuadShape.new(@quad.top_left, Point.new(@quad.bottom_right.x, @quad.top_left.y + height))
+      end
+    end
+
+    def move_down height
+      if height > 0
+        p "LOAD DOWN #{height}"
+        @screen[...-height] = @screen[height..]
+        @screen[-height..] = Array.new(height) { String.new(' ' * @quad.width) }
+        @quad = @quad.translate 0, height
+        QuadShape.new(Point.new(@quad.top_left.x, @quad.bottom_right.y - height), @quad.bottom_right)
+      end
+    end
+
+    def view quad
+      s = []
+      quad.height.times do |i|
+        s[i] = @screen[i + quad.top_left.y - @quad.top_left.y][(quad.top_left.x - @quad.top_left.x)..(quad.bottom_right.x - @quad.top_left.x)]
+      end
+      s.join("\n")
+    end
+  end
+
   class UserInterface
     def initialize
       config = YAML.load_file('config.yml')
@@ -29,68 +97,36 @@ module Gandhi
       @buffer_height = config['map']['buffer']['height']
       load_assets
       generate_map
-      @screen_quad = QuadShape.new(Point.new(0, 0), Point.new(config['map']['memory']['width'], config['map']['memory']['height'])).to_raster
-      @screen = Array.new(@screen_quad.height) { String.new(' ' * @screen_quad.width) }
+      @screen = Screen.new QuadShape.new(Point.new(0, 0), Point.new(config['map']['memory']['width'], config['map']['memory']['height']))
       x = 23
       y = 23
-      @viewport = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(config['window']['width'] + x, config['window']['height'] + y)).to_raster
+      @viewport_quad = QuadShape.new(Point.new(0 + x, 0 + y), Point.new(config['window']['width'] + x, config['window']['height'] + y)).to_raster
       main_window config
-      render_tiles @screen_quad
+      render_tiles @screen.quad
       timer = TkAfter.new(100, -1, proc { play })
       timer.start
     end
 
     def render_tiles quad
-      tiles = @map_tree.shapes quad
-      tiles.each { |tile| @asset[tile.ttype].render(tile, @screen, quad.top_left) }
+      @map_tree.shapes(quad).each do |tile|
+        @asset[tile.ttype].render(tile, @screen, quad.top_left)
+      end
     end
 
     def load_screen_left
-      width = [@screen_quad.top_left.x - @map_quad.top_left.x, @buffer_width].min
-      if width > 0
-        p "LOAD LEFT #{width}"
-        @screen_quad.height.times do |i|
-          @screen[i][width..] = @screen[i][...-width]
-          @screen[i][...width] = ' ' * width
-        end
-        @screen_quad = @screen_quad.translate -width, 0
-        render_tiles QuadShape.new(@screen_quad.top_left, Point.new(@screen_quad.top_left.x + width, @screen_quad.bottom_right.y))
-      end
+      render_tiles @screen.move_left([@screen.quad.top_left.x - @map_quad.top_left.x, @buffer_width].min)
     end
 
     def load_screen_right
-      width = [@map_quad.bottom_right.x - @screen_quad.bottom_right.x, @buffer_width].min
-      if width > 0
-        p "LOAD RIGHT #{width}"
-        @screen_quad.height.times do |i|
-          @screen[i][...-width] = @screen[i][width..]
-          @screen[i][-width..] = ' ' * width
-        end
-        @screen_quad = @screen_quad.translate width, 0
-        render_tiles QuadShape.new(Point.new(@screen_quad.bottom_right.x - width, @screen_quad.top_left.y), @screen_quad.bottom_right)
-      end
+      render_tiles @screen.move_right([@map_quad.bottom_right.x - @screen.quad.bottom_right.x, @buffer_width].min)
     end
 
     def load_screen_up
-      height = [@screen_quad.top_left.y - @map_quad.top_left.y, @buffer_height].min
-      if height > 0
-        p "LOAD UP #{height}"
-        @screen[height..] = @screen[...-height]
-        @screen[...height] = Array.new(height) { String.new(' ' * @screen_quad.width) }
-        @screen_quad = @screen_quad.translate 0, -height
-        render_tiles QuadShape.new(@screen_quad.top_left, Point.new(@screen_quad.bottom_right.x, @screen_quad.top_left.y + height))
-      end
+      render_tiles @screen.move_up([@screen.quad.top_left.y - @map_quad.top_left.y, @buffer_height].min)
     end
 
     def load_screen_down
-      height = [@map_quad.bottom_right.y - @screen_quad.bottom_right.y, @buffer_height].min
-      if height > 0
-        p "LOAD DOWN #{height}"
-        @screen[...-height] = @screen[height..]
-        @screen[-height..] = Array.new(height) { String.new(' ' * @screen_quad.width) }
-        @screen_quad = @screen_quad.translate 0, height
-        render_tiles QuadShape.new(Point.new(@screen_quad.top_left.x, @screen_quad.bottom_right.y - height), @screen_quad.bottom_right)
-      end
+      render_tiles @screen.move_down([@map_quad.bottom_right.y - @screen.quad.bottom_right.y, @buffer_height].min)
     end
 
     def generate_map
@@ -111,11 +147,7 @@ module Gandhi
     end
 
     def play
-      s = []
-      @viewport.height.times do |i|
-        s[i] = @screen[i + @viewport.top_left.y - @screen_quad.top_left.y][(@viewport.top_left.x - @screen_quad.top_left.x)..(@viewport.bottom_right.x - @screen_quad.top_left.x)]
-      end
-      @label_var.value = s.join("\n")
+      @label_var.value = @screen.view(@viewport_quad)
     end
     
     def load_assets
@@ -124,38 +156,38 @@ module Gandhi
     end
 
     def move_viewport_left
-      if @viewport.top_left.x > @map_quad.top_left.x
-        if @viewport.top_left.x - @screen_quad.top_left.x <= 0
+      if @viewport_quad.top_left.x > @map_quad.top_left.x
+        if @viewport_quad.top_left.x - @screen.quad.top_left.x <= 0
           load_screen_left
         end
-        @viewport = @viewport.translate(-1, 0).to_raster
+        @viewport_quad = @viewport_quad.translate(-1, 0).to_raster
       end
     end
 
     def move_viewport_right
-      if @viewport.bottom_right.x < @map_quad.bottom_right.x
-        if @screen_quad.bottom_right.x - @viewport.bottom_right.x <= 0
+      if @viewport_quad.bottom_right.x < @map_quad.bottom_right.x
+        if @screen.quad.bottom_right.x - @viewport_quad.bottom_right.x <= 0
           load_screen_right
         end
-        @viewport = @viewport.translate(1, 0).to_raster
+        @viewport_quad = @viewport_quad.translate(1, 0).to_raster
       end
     end
     
     def move_viewport_up
-      if @viewport.top_left.y > @map_quad.top_left.y
-        if @viewport.top_left.y - @screen_quad.top_left.y <= 0
+      if @viewport_quad.top_left.y > @map_quad.top_left.y
+        if @viewport_quad.top_left.y - @screen.quad.top_left.y <= 0
           load_screen_up
         end
-        @viewport = @viewport.translate(0, -1).to_raster
+        @viewport_quad = @viewport_quad.translate(0, -1).to_raster
       end
     end
 
     def move_viewport_down
-      if @viewport.bottom_right.y < @map_quad.bottom_right.y
-        if @screen_quad.bottom_right.y - @viewport.bottom_right.y <= 0
+      if @viewport_quad.bottom_right.y < @map_quad.bottom_right.y
+        if @screen.quad.bottom_right.y - @viewport_quad.bottom_right.y <= 0
           load_screen_down
         end
-        @viewport = @viewport.translate(0, 1).to_raster
+        @viewport_quad = @viewport_quad.translate(0, 1).to_raster
       end
     end
 
